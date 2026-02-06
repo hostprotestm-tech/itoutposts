@@ -1,0 +1,13 @@
+version: '1'
+
+services:
+  parser:
+    container_name: nginx-log-parser
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./input:/input:ro
+      - ./output:/output
+    restart: unless-stopped
+    command: tail -f /dev/null
