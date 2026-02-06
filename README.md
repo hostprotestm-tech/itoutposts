@@ -1,77 +1,77 @@
 # Nginx log → CSV → Git (Docker)
 
-Цей проєкт піднімає контейнер з Bash-скриптом `parser.sh`, який парсить Nginx (Ingress-style) access log у CSV (розділювач `;`), після чого комітить і пушить CSV у заданий через .env GitHub-репозиторій.
+This project initializes a container featuring the Bash script `parser.sh`. This script parses Nginx (Ingress-style) access logs into CSV format (using a semicolon `;` delimiter), after which it commits and pushes the CSV file to a GitHub repository specified via the `.env` configuration.
 
-## Передумови
+## Prerequisites
 
-- На хості має бути встановлений Docker та Docker Compose.
-- У GitHub має бути створений Personal Access Token (PAT) для доступу (push) у репозиторій, куди будуть додаватися `.csv` файли. Документація GitHub: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+- Docker and Docker Compose must be installed on the host machine.
+- A Personal Access Token (PAT) must be generated within GitHub to authorize access (push privileges) to the repository where the `.csv` files will be deposited. GitHub Documentation: [https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
-## Налаштування
+## Configuration
 
-У корені проєкта:
+Execute the following command within the project root directory:
 
 ```bash
 cp .env.example .env
 ```
 
-Відредагуйте `.env` і заповніть:
+Edit the `.env` file and populate the following fields:
 
-- `GIT_USER_NAME` та `GIT_USER_EMAIL` (автор коміту)
+- `GIT_USER_NAME` and `GIT_USER_EMAIL` (commit author details)
 - `GIT_USERNAME` (GitHub username)
 - `GIT_TOKEN` (PAT)
-- `GIT_REPO_URL` (без `https://` і без `.git`, наприклад `github.com/hostprotestm-tech/itoutposts`)
-- `GIT_BRANCH` (зазвичай `main`)
+- `GIT_REPO_URL` (excluding `https://` and `.git`, for example `github.com/hostprotestm-tech/itoutposts`)
+- `GIT_BRANCH` (typically `main`)
 
-## Запуск
+## Execution
 
-Після заповнення `.env`:
+Following the configuration of the `.env` file, execute:
 
 ```bash
 docker compose up --build -d
 ```
 
-Файл із логами повинен знаходитись у каталозі `input/`.
+The log file must be located within the `input/` directory.
 
-Оброблені файли (`.csv`) будуть у каталозі `output/`.
+Processed files (`.csv`) will be stored within the `output/` directory.
 
-## Параметри `parser.sh`
+## `parser.sh` Parameters
 
-- `-i <path>`: вхідний log-файл (наприклад `/input/nginx.log`).
-- `-o <path>`: вихідний CSV-файл (наприклад `/output/parsed_logs.csv`).
-- `-f <key=value>`: фільтр (одна умова на запуск).
+- `-i <path>`: input log file (for example, `/input/nginx.log`).
+- `-o <path>`: output CSV file (for example, `/output/parsed_logs.csv`).
+- `-f <key=value>`: filter (limit of one condition per execution).
 
-## Фільтрація (`-f key=value`)
+## Filtering (`-f key=value`)
 
-Підтримувані ключі:
+Supported keys include:
 
-- `ip` (точна відповідність)
-- `time` (підрядок, наприклад `time=26/Apr/2021` або `time=26/Apr/2021:21:20:17`)
-- `method` (точна відповідність)
-- `url` (підрядок)
-- `protocol` (точна відповідність)
-- `status` (точна відповідність)
-- `bytes` (точна відповідність)
-- `referer` (підрядок)
-- `user_agent` (підрядок)
-- `request_length` (точна відповідність)
-- `request_time` (точна відповідність)
-- `upstream_name` (підрядок)
-- `alt_upstream_name` (підрядок)
-- `upstream_addr` (підрядок)
-- `upstream_response_length` (точна відповідність)
-- `upstream_response_time` (точна відповідність)
-- `upstream_status` (точна відповідність)
-- `request_id` (підрядок)
+- `ip` (exact match)
+- `time` (substring, for example, `time=26/Apr/2021` or `time=26/Apr/2021:21:20:17`)
+- `method` (exact match)
+- `url` (substring)
+- `protocol` (exact match)
+- `status` (exact match)
+- `bytes` (exact match)
+- `referer` (substring)
+- `user_agent` (substring)
+- `request_length` (exact match)
+- `request_time` (exact match)
+- `upstream_name` (substring)
+- `alt_upstream_name` (substring)
+- `upstream_addr` (substring)
+- `upstream_response_length` (exact match)
+- `upstream_response_time` (exact match)
+- `upstream_status` (exact match)
+- `request_id` (substring)
 
-## Приклад використання
+## Usage Example
 
 ```bash
 docker exec -it nginx-log-parser parser.sh -i /input/nginx.log -o /output/parsed_logs_filterIP.csv -f ip=192.168.226.64
 ```
 
-## Примітки
+## Notes
 
-- Якщо у каталозі `output/` ще немає Git-репозиторію, скрипт автоматично зробить `git clone` у `output/`.
-- Скрипт пушить у вказану гілку `GIT_BRANCH`.
-- Приклади опрацьованих .csv файлів розміщується в репозиторії https://github.com/hostprotestm-tech/didactic-octo-parakeet
+- If a Git repository does not yet exist within the `output/` directory, the script will automatically perform a `git clone` operation into `output/`.
+- The script pushes changes to the branch specified in `GIT_BRANCH`.
+- Examples of processed `.csv` files are located in the repository: [https://github.com/hostprotestm-tech/didactic-octo-parakeet](https://github.com/hostprotestm-tech/didactic-octo-parakeet)
